@@ -1,70 +1,92 @@
-# Getting Started with Create React App
+# cursor-auto-account-web 前端部署指南
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+本项目为 cursor-auto-account 的前端部分，基于 React 构建。后端服务请前往 [cursor-auto-account](https://github.com/Viper373/cursor-auto-account) 仓库部署。
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 目录结构
+- `src/`：前端源代码
+- `public/`：静态资源
+- `build/`：生产构建输出目录
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 部署方式
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 后端部署（需要先部署后端服务！！！）
 
-### `npm test`
+后端服务请参考 [cursor-auto-account](https://github.com/Viper373/cursor-auto-account) 仓库的部署文档。
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 1. 私有部署
 
-### `npm run build`
+#### 环境要求
+- Node.js >= 14.x
+- npm >= 6.x
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### 步骤
+1. 克隆本仓库：
+   ```bash
+   git clone https://github.com/Viper373/cursor-auto-account-web.git
+   cd cursor-auto-account-web
+   ```
+2. 安装依赖：
+   ```bash
+   npm install
+   ```
+   ```bash
+   yarn install
+   ```
+   ```bash
+   pnpm install
+   ```
+3. 构建项目：
+   ```bash
+   npm run build
+   ```
+   ```bash
+   yarn build
+   ```
+   ```bash
+   pnpm build
+   ```
+4. 将 `build/` 目录下内容部署到任意静态 Web 服务器。
+5. 配置前端环境变量,在`server/api.js`中找到注释`// 使用相对路径，通过代理访问后端API`，将其修改为后端部署的域名或ip+端口。
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 2. 云部署
 
-### `npm run eject`
+#### 2.1 fork 本仓库
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+建议先 fork 本仓库到自己的 GitHub 账号，方便后续自定义和管理。
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+#### 2.2 Vercel 部署
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/import/project?template=https://github.com/Viper373/cursor-auto-account-web)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+点击上方按钮可一键部署到 Vercel。
 
-## Learn More
+1. 登录 [Vercel](https://vercel.com/) 并新建项目，选择本仓库。
+2. 保持默认构建命令，无需其他配置。
+3. 部署完成后即可访问。
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+#### 2.3 Netlify 部署
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+[![Deploy with Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Viper373/cursor-auto-account-web)
 
-### Code Splitting
+点击上方按钮可一键部署到 Netlify。
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1. 登录 [Netlify](https://www.netlify.com/) 并新建站点，连接本仓库。
+2. 保持默认构建命令，无需其他配置。
+3. 部署完成后即可访问。
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 常见问题
+- 前端无法访问接口：请检查 API 地址配置，确保后端已正确部署并允许跨域。
+- 构建失败：请确认 Node.js 和 npm 版本，或删除 `node_modules` 重新安装依赖。
 
-### Making a Progressive Web App
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 联系与支持
+如有问题请提交 Issue 或联系维护者。
