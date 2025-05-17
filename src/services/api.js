@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: '/api', // 使用相对路径，通过代理访问后端API
+  baseURL: 'https://cursorapi.viper3.top/api', // 使用相对路径，通过代理访问后端API
   timeout: 300000, // 请求超时时间
   headers: {
     'Content-Type': 'application/json',
