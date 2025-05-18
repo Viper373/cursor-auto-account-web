@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "homepage": ".",
-  "proxy": "https://cursorapi.viper3.top",
+  "proxy": "https://cursorapi.viper3.us.kg",
   "dependencies": {
     "@ant-design/icons": "^6.0.0",
     "@testing-library/dom": "^10.4.0",
