@@ -1,0 +1,43 @@
+name: Account Create
+
+on:
+  schedule:
+    # 每天UTC时间0点、6点、12点、18点执行（对应北京时间8点、14点、20点、次日2点）
+    - cron: '0 */6 * * *'
+
+jobs:
+  check-account:
+    runs-on: ubuntu-latest
+    env:
+      AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
+
+    steps:
+    - name: Install jq
+      run: sudo apt-get install -y jq
+
+    - name: Send request and verify
+      run: |
+        response=$(curl -sS \
+          -H "accept: application/json, text/plain, */*" \
+          -H "accept-language: zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,ja;q=0.5,ko;q=0.4,fr;q=0.3" \
+          -H "authorization: Bearer $AUTH_TOKEN" \
+          -H "origin: https://cursor.viper3.top" \
+          -H "priority: u=1, i" \
+          -H "referer: https://cursor.viper3.top/" \
+          -H "sec-ch-ua: \"Chromium\";v=\"136\", \"Microsoft Edge\";v=\"136\", \"Not.A/Brand\";v=\"99\"" \
+          -H "sec-ch-ua-mobile: ?0" \
+          -H "sec-ch-ua-platform: \"Windows\"" \
+          -H "sec-fetch-dest: empty" \
+          -H "sec-fetch-mode: cors" \
+          -H "sec-fetch-site: same-site" \
+          -H "user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0" \
+          "https://cursorapi.viper3.top/api/account")
+
+        status=$(echo "$response" | jq -r '.status')
+        
+        if [ "$status" = "success" ]; then
+          echo "✅ Request succeeded"
+        else
+          echo "❌ Request failed. Response: $response"
+          exit 1
+        fi
