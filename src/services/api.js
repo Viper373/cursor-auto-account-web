@@ -4,7 +4,7 @@ import axios from 'axios';
 const api = axios.create({
   // baseURL: 'https://cursorapi.viper3.top/api', // 使用相对路径，通过代理访问后端API
   // baseURL: 'https://cursorapi.viper3.us.kg/api',
-  // baseURL: 'https://cursor-auto-account.vercel.app/api',
+  baseURL: 'https://cursor-auto-account.vercel.app/api',
   timeout: 300000, // 请求超时时间
   headers: {
     'Content-Type': 'application/json',
