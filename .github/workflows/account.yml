@@ -2,8 +2,8 @@ name: Account Create
 
 on:
   schedule:
-    # 每天UTC时间0点、6点、12点、18点执行（对应北京时间8点、14点、20点、次日2点）
-    - cron: '0 */6 * * *'
+    # 每天UTC时间0点和12点执行（对应北京时间8点和20点）
+    - cron: '0 0,12 * * *'
 
 jobs:
   check-account:
