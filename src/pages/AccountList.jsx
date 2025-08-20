@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Card, Statistic, Row, Col, Modal, message, Tag, Switch, Space, Popconfirm, List, Avatar, Divider } from 'antd';
+import { Table, Button, Card, Statistic, Row, Col, Modal, message, Tag, Switch, Space, Popconfirm, List, Avatar, Divider, Spin } from 'antd';
 import { CopyOutlined, ReloadOutlined, UserOutlined, CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, MailOutlined, LockOutlined, CalendarOutlined } from '@ant-design/icons';
 import { accountApi } from '../services/api';
 import { formatTimestamp, copyToClipboard, isAccountExpired, getFullName, isMobile, isSmallMobile } from '../utils';
@@ -417,6 +417,7 @@ const AccountList = () => {
 
   return (
     <div>
+      <Spin fullscreen spinning={getAccountLoading} tip="正在获取新账号..." />
       {renderStatCards()}
 
       <Card
