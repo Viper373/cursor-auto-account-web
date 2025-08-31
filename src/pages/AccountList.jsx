@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Table, Button, Card, Statistic, Row, Col, Modal, message, Tag, Switch, Space, Popconfirm, List, Avatar, Divider, Spin, Progress } from 'antd';
 import { CopyOutlined, ReloadOutlined, UserOutlined, CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, MailOutlined, LockOutlined, CalendarOutlined } from '@ant-design/icons';
-import { accountApi } from '../services/api';
+import api, { accountApi } from '../services/api';
 import ProgressLogModal from '../components/ProgressLogModal';
 import DraggableLogPanel from '../components/DraggableLogPanel';
 import { formatTimestamp, copyToClipboard, isAccountExpired, getFullName, isMobile, isSmallMobile } from '../utils';
@@ -26,6 +26,10 @@ const AccountList = () => {
   const [logModalOpen, setLogModalOpen] = useState(false);
   const [progressLogs, setProgressLogs] = useState([]);
   const [dockVisible, setDockVisible] = useState(true);
+  const [progressVisible, setProgressVisible] = useState(false);
+  const [progressPercent, setProgressPercent] = useState(0);
+  const [progressStatus, setProgressStatus] = useState('active');
+  const eventSourceRef = useRef(null);
 
   // 监听窗口大小变化，更新移动设备状态
   useEffect(() => {
