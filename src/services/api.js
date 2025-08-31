@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-// 创建axios实例（CRA 会注入 REACT_APP_* 变量）
-const API_URL = process.env.API_URL;
+// 创建axios实例（CRA 仅注入以 REACT_APP_ 开头的变量）
+const API_URL = process.env.REACT_APP_API_URL;
 if (!API_URL) {
   // 运行时友好提示
   // eslint-disable-next-line no-console
-  console.error('API base url is not set. Please set API_URL in environment variables.');
+  console.error('API base url is not set. Please set REACT_APP_API_URL in environment variables.');
 }
 
 const api = axios.create({
