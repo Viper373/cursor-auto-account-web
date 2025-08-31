@@ -73,7 +73,7 @@ export const accountApi = {
   getAccount: () => api.get('/account'),
   // SSE 实时创建账号
   streamCreateAccount: (token) => {
-    const base = API_BASE || '';
+    const base = API_URL || '';
     const url = `${base || ''}/api/account/stream`;
     // EventSource 不支持自定义 headers，改用 query 传 token
     const src = new EventSource(`${url}?token=${encodeURIComponent(token)}`);
