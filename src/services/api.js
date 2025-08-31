@@ -1,9 +1,16 @@
 import axios from 'axios';
 
-// 创建axios实例
-const API_BASE = process.env.API_URL;
+// 创建axios实例（CRA 会注入 REACT_APP_* 变量）
+const RAW_BASE = process.env.REACT_APP_API_URL || process.env.API_URL || '';
+const API_BASE = typeof RAW_BASE === 'string' && RAW_BASE.length > 0 ? RAW_BASE.replace(/\/$/, '') : '';
+if (!API_BASE) {
+  // 运行时友好提示
+  // eslint-disable-next-line no-console
+  console.error('API base url is not set. Please set REACT_APP_API_URL in environment variables.');
+}
+
 const api = axios.create({
-  baseURL: `${API_BASE.replace(/\/$/, '')}/api`,
+  baseURL: API_BASE ? `${API_BASE}/api` : '/api',
   timeout: 300000, // 请求超时时间
   headers: {
     'Content-Type': 'application/json',
@@ -67,8 +74,8 @@ export const accountApi = {
   getAccount: () => api.get('/account'),
   // SSE 实时创建账号
   streamCreateAccount: (token) => {
-    const base = process.env.API_URL.replace(/\/$/, '');
-    const url = `${base}/api/account/stream`;
+    const base = API_BASE || '';
+    const url = `${base || ''}/api/account/stream`;
     // EventSource 不支持自定义 headers，改用 query 传 token
     const src = new EventSource(`${url}?token=${encodeURIComponent(token)}`);
     return src;

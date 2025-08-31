@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Dropdown, message, Drawer, Space } from 'antd';
+import { Layout, Menu, Button, Dropdown, message, Drawer } from 'antd';
 import {
   UserOutlined,
   LogoutOutlined,
@@ -11,7 +11,7 @@ import {
   MenuOutlined
 } from '@ant-design/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { clearToken, isAdmin, isMobile, isSmallMobile, BREAKPOINTS } from '../utils';
+import { clearToken, isAdmin, isMobile, isSmallMobile } from '../utils';
 import { useUser } from '../contexts/UserContext';
 
 const { Header, Sider, Content } = Layout;

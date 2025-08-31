@@ -52,15 +52,16 @@
 4. 将 `build/` 目录下内容部署到任意静态 Web 服务器。
 5. 配置前端环境变量
 
-复制 `.env.example` 为 `.env` 并设置：
+复制 `.env.example` 为 `.env` 并设置以下变量（或在 Vercel/Netlify 的项目设置中配置环境变量）：
 ```
-API_URL=https://your-api-domain-or-ip:port
-REACT_URL=https://your-frontend-domain
+REACT_APP_API_URL=https://your-api-domain-or-ip:port   # 前端用来访问后端 API 的基地址
+REACT_URL=https://your-frontend-domain                      # 后端 CORS 放行的前端来源（可逗号分隔多个）
 ```
 
 说明：
-- 前端通过 `API_URL` 访问后端接口（axios 基址与 SSE 均基于该变量）。
-- 后端 CORS 放行读取 `REACT_URL`（或多个来源用逗号分隔），请与实际前端部署域名保持一致。
+- `REACT_APP_API_URL`：Create React App 和构建产物会在运行时读取该变量，前端的 axios 基址与 SSE 地址均基于此值。当使用 Vercel 等平台部署时，请在项目的 Environment Variables 中设置 `REACT_APP_API_URL`（Build & Runtime）。
+- `REACT_URL`：写入后端 `.env`，后端会把该值作为允许的跨域来源（CORS）。可在同一域名或多个域名间用逗号分隔，例如 `https://example.com,https://www.example.com`。
+- 如果你使用的是本地开发，可把 `.env.example` 复制为 `.env` 并设置为 `http://127.0.0.1:5000`（后端）和 `http://127.0.0.1:3000`（前端）。
 
 ---
 
