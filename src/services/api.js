@@ -1,16 +1,15 @@
 import axios from 'axios';
 
 // 创建axios实例（CRA 会注入 REACT_APP_* 变量）
-const RAW_BASE = process.env.API_URL;
-const API_BASE = typeof RAW_BASE === 'string' && RAW_BASE.length > 0 ? RAW_BASE.replace(/\/$/, '') : '';
-if (!API_BASE) {
+const API_URL = process.env.API_URL;
+if (!API_URL) {
   // 运行时友好提示
   // eslint-disable-next-line no-console
-  console.error('API base url is not set. Please set REACT_APP_API_URL in environment variables.');
+  console.error('API base url is not set. Please set API_URL in environment variables.');
 }
 
 const api = axios.create({
-  baseURL: API_BASE ? `${API_BASE}/api` : '/api',
+  baseURL: API_URL ? `${API_URL}/api` : '/api',
   timeout: 300000, // 请求超时时间
   headers: {
     'Content-Type': 'application/json',
