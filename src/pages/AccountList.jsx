@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Table, Button, Card, Statistic, Row, Col, Modal, message, Tag, Switch, Space, Popconfirm, List, Avatar, Divider } from 'antd';
 import { CopyOutlined, ReloadOutlined, UserOutlined, CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, MailOutlined, LockOutlined, CalendarOutlined } from '@ant-design/icons';
 import { accountApi } from '../services/api';
+import ProgressLogModal from '../components/ProgressLogModal';
+import DraggableLogPanel from '../components/DraggableLogPanel';
 import { formatTimestamp, copyToClipboard, isAccountExpired, getFullName, isMobile, isSmallMobile } from '../utils';
 
 const AccountList = () => {
@@ -21,6 +23,9 @@ const AccountList = () => {
     total: 0
   });
   const [mobile, setMobile] = useState(isMobile());
+  const [logModalOpen, setLogModalOpen] = useState(false);
+  const [progressLogs, setProgressLogs] = useState([]);
+  const [dockVisible, setDockVisible] = useState(true);
 
   // 监听窗口大小变化，更新移动设备状态
   useEffect(() => {
@@ -49,16 +54,17 @@ const AccountList = () => {
           pageSize: response.per_page,
           total: response.total
         });
-
-        // 计算统计数据
-        const used = response.accounts.filter(acc => acc.is_used === 1).length;
-        const available = response.accounts.length - used;
-
-        setStats({
-          total: response.total,
-          used: used,
-          available: available
-        });
+        // 独立获取全量统计，避免随分页变化
+        try {
+          const statsResp = await accountApi.getUserAccountStats();
+          if (statsResp.status === 'success') {
+            setStats({
+              total: statsResp.total,
+              used: statsResp.used,
+              available: statsResp.available
+            });
+          }
+        } catch (e) {}
       } else {
         message.error(response.message || '获取账号列表失败');
       }
@@ -79,23 +85,43 @@ const AccountList = () => {
   const getNewAccount = async () => {
     try {
       setGetAccountLoading(true);
-      const response = await accountApi.getAccount();
+      setProgressLogs([]);
+      setDockVisible(true);
+      setLogModalOpen(false); // 使用常驻面板
+      setProgressLogs(prev => [...prev, '开始获取新账号...']);
 
-      if (response.status === 'success') {
-        message.success('获取新账号成功');
-        // 显示账号详情
-        setSelectedAccount(response.account);
-        setModalVisible(true);
-        // 刷新账号列表，回到第一页
-        fetchAccounts(1, pagination.pageSize);
-      } else {
-        message.error(response.message || '获取新账号失败');
-      }
+      const token = localStorage.getItem('token') || '';
+      const es = accountApi.streamCreateAccount(token);
+      es.addEventListener('log', (ev) => {
+        setProgressLogs(prev => [...prev, ev.data]);
+      });
+      es.addEventListener('done', (ev) => {
+        try {
+          const data = JSON.parse(ev.data);
+          if (data.status === 'success') {
+            message.success('获取新账号成功');
+            setSelectedAccount(data.account);
+            setModalVisible(true);
+            fetchAccounts(1, pagination.pageSize);
+          } else {
+            message.error(data.message || '获取新账号失败');
+          }
+        } catch (e) {
+          // ignore
+        }
+        es.close();
+      });
+      es.addEventListener('error', (ev) => {
+        setProgressLogs(prev => [...prev, '连接中断或出错']);
+        es.close();
+      });
     } catch (error) {
       console.error('获取新账号失败:', error);
       message.error('获取新账号失败: ' + (error.response?.data?.message || error.message));
+      setProgressLogs(prev => [...prev, `异常：${error.response?.data?.message || error.message}`]);
     } finally {
       setGetAccountLoading(false);
+      // 若需要自动关闭可在这里判断
     }
   };
 
@@ -375,52 +401,41 @@ const AccountList = () => {
     );
   };
 
-  // 响应式统计卡片
-  const renderStatCards = () => {
-    const colSpan = mobile ? 24 : 8;
-    const gutter = mobile ? [0, 16] : 16;
-
-    return (
-      <Row gutter={gutter} style={{ marginBottom: mobile ? 8 : 16 }}>
-        <Col span={colSpan} style={{ marginBottom: mobile ? 16 : 0 }}>
-          <Card>
-            <Statistic
-              title="总账号数"
-              value={stats.total}
-              prefix={<UserOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col span={colSpan} style={{ marginBottom: mobile ? 16 : 0 }}>
-          <Card>
-            <Statistic
-              title="已使用账号"
-              value={stats.used}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col span={colSpan}>
-          <Card>
-            <Statistic
-              title="可用账号"
-              value={stats.available}
-              prefix={<CloseCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-    );
+  // 顶部内联日志面板样式
+  const inlineLogStyle = {
+    background: '#0b1020',
+    color: '#c8d1ff',
+    borderRadius: 6,
+    padding: 10,
+    height: 260,
+    overflowY: 'auto',
+    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+    fontSize: 12,
+    lineHeight: '18px',
+    whiteSpace: 'pre-wrap'
   };
 
   return (
     <div>
-      {renderStatCards()}
+      {/* 顶部日志面板支持拖拽与停靠 */}
+      <DraggableLogPanel
+        logs={progressLogs}
+        onClear={() => setProgressLogs([])}
+        defaultFloating={false}
+        mobile={mobile}
+      />
 
       <Card
-        title="账号列表"
+        title={
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+            <span style={{ marginRight: 8 }}>账号列表</span>
+            <Space size={mobile ? 6 : 20} wrap>
+              <span><UserOutlined /> 总账号数：{stats.total}</span>
+              <span style={{ color: '#1890ff' }}><CheckCircleOutlined /> 已使用：{stats.used}</span>
+              <span style={{ color: '#52c41a' }}><CloseCircleOutlined /> 可用：{stats.available}</span>
+            </Space>
+          </div>
+        }
         extra={
           <Space size={mobile ? 'small' : 'middle'}>
             <Button
@@ -466,6 +481,13 @@ const AccountList = () => {
           />
         )}
       </Card>
+
+      <ProgressLogModal
+        open={logModalOpen}
+        logs={progressLogs}
+        onCancel={() => setLogModalOpen(false)}
+        title="获取新账号进度"
+      />
 
       {/* 账号详情弹窗 */}
       <Modal

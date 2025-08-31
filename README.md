@@ -50,7 +50,17 @@
    pnpm build
    ```
 4. 将 `build/` 目录下内容部署到任意静态 Web 服务器。
-5. 配置前端环境变量,在`server/api.js`中找到注释`// 使用相对路径，通过代理访问后端API`，将其修改为后端部署的域名或ip+端口。
+5. 配置前端环境变量
+
+复制 `.env.example` 为 `.env` 并设置：
+```
+API_URL=https://your-api-domain-or-ip:port
+REACT_URL=https://your-frontend-domain
+```
+
+说明：
+- 前端通过 `API_URL` 访问后端接口（axios 基址与 SSE 均基于该变量）。
+- 后端 CORS 放行读取 `REACT_URL`（或多个来源用逗号分隔），请与实际前端部署域名保持一致。
 
 ---
 

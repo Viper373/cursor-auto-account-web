@@ -1,10 +1,9 @@
 import axios from 'axios';
 
 // 创建axios实例
+const API_BASE = process.env.API_URL;
 const api = axios.create({
-  baseURL: 'https://cursorapi.viper3.top/api', // 使用相对路径，通过代理访问后端API
-  // baseURL: 'https://cursorapi.viper3.us.kg/api',
-  // baseURL: 'https://cursor-auto-account.vercel.app/api',
+  baseURL: `${API_BASE.replace(/\/$/, '')}/api`,
   timeout: 300000, // 请求超时时间
   headers: {
     'Content-Type': 'application/json',
@@ -66,9 +65,20 @@ export const userApi = {
 export const accountApi = {
   // 获取一个新账号
   getAccount: () => api.get('/account'),
+  // SSE 实时创建账号
+  streamCreateAccount: (token) => {
+    const base = process.env.API_URL.replace(/\/$/, '');
+    const url = `${base}/api/account/stream`;
+    // EventSource 不支持自定义 headers，改用 query 传 token
+    const src = new EventSource(`${url}?token=${encodeURIComponent(token)}`);
+    return src;
+  },
 
   // 获取用户的所有账号
   getUserAccounts: (page = 1, perPage = 10) => api.get(`/accounts?page=${page}&per_page=${perPage}`),
+
+  // 获取账号统计
+  getUserAccountStats: () => api.get('/accounts/stats'),
 
   // 更新账号状态
   updateAccountStatus: (accountId, isUsed) => api.put(`/account/${accountId}/status`, { is_used: isUsed }),
