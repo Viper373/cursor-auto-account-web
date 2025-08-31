@@ -54,8 +54,8 @@
 
 复制 `.env.example` 为 `.env` 并设置以下变量（或在 Vercel/Netlify 的项目设置中配置环境变量）：
 ```
-REACT_APP_API_URL=https://your-api-domain-or-ip:port   # 前端用来访问后端 API 的基地址
-REACT_URL=https://your-frontend-domain                      # 后端 CORS 放行的前端来源（可逗号分隔多个）
+API_URL=https://your-api-domain-or-ip:port   # 前端用来访问后端 API 的基地址
+REACT_URL=https://your-frontend-domain       # 后端 CORS 放行的前端来源（可逗号分隔多个）
 ```
 
 说明：
