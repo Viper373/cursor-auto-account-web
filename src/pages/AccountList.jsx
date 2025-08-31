@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Button, Card, Statistic, Row, Col, Modal, message, Tag, Switch, Space, Popconfirm, List, Avatar, Divider } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Table, Button, Card, Statistic, Row, Col, Modal, message, Tag, Switch, Space, Popconfirm, List, Avatar, Divider, Spin, Progress } from 'antd';
 import { CopyOutlined, ReloadOutlined, UserOutlined, CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, MailOutlined, LockOutlined, CalendarOutlined } from '@ant-design/icons';
 import { accountApi } from '../services/api';
 import ProgressLogModal from '../components/ProgressLogModal';
@@ -125,6 +125,97 @@ const AccountList = () => {
     }
   };
 
+  // 尝试建立SSE进度流连接
+  const startProgressStream = () => {
+    try {
+      // 重置并展示进度UI
+      setProgressLogs([]);
+      setProgressPercent(0);
+      setProgressStatus('active');
+      setProgressVisible(true);
+
+      // 通过与 axios 相同的 baseURL 拼接进度端点
+      const baseURL = (api?.defaults?.baseURL || '').replace(/\/$/, '');
+      if (!baseURL) {
+        return; // 无法确定地址则仅展示本地进度UI
+      }
+      const token = localStorage.getItem('token');
+      const progressUrl = `${baseURL}/account/progress${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+
+      // 如果已有连接，先关闭
+      if (eventSourceRef.current) {
+        try { eventSourceRef.current.close(); } catch (_) {}
+        eventSourceRef.current = null;
+      }
+
+      const es = new EventSource(progressUrl);
+      eventSourceRef.current = es;
+
+      es.onopen = () => {
+        appendProgressLog('已连接进度流...');
+      };
+
+      es.onmessage = (evt) => {
+        if (!evt || typeof evt.data !== 'string') {
+          return;
+        }
+        // 兼容纯文本或 JSON 日志
+        try {
+          const data = JSON.parse(evt.data);
+          if (data?.message) {
+            appendProgressLog(String(data.message));
+          }
+          if (typeof data?.percent === 'number') {
+            const p = Math.max(0, Math.min(100, data.percent));
+            setProgressPercent(p);
+          }
+          if (data?.status === 'done') {
+            setProgressPercent(100);
+            setProgressStatus('success');
+          }
+          if (data?.status === 'error') {
+            setProgressStatus('exception');
+          }
+        } catch {
+          appendProgressLog(evt.data);
+        }
+      };
+
+      es.onerror = () => {
+        // 发生错误时保留本地进度UI，但停止进一步的事件。
+        try { es.close(); } catch (_) {}
+        eventSourceRef.current = null;
+      };
+    } catch (_) {
+      // 忽略连接失败，继续展示本地进度UI
+    }
+  };
+
+  const stopProgressStream = (autoClose = false) => {
+    try {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+    } catch (_) {}
+    if (autoClose) {
+      // 稍作延时，让用户看到最终状态
+      setTimeout(() => setProgressVisible(false), 400);
+    }
+  };
+
+  const appendProgressLog = (line) => {
+    if (!line) return;
+    setProgressLogs((prev) => {
+      const next = [...prev, line];
+      // 限制日志长度，避免过长
+      if (next.length > 200) {
+        next.shift();
+      }
+      return next;
+    });
+  };
+
   // 更新账号状态
   const updateAccountStatus = async (accountId, isUsed) => {
     try {
@@ -211,6 +302,17 @@ const AccountList = () => {
   useEffect(() => {
     fetchAccounts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // 组件卸载时清理事件源
+  useEffect(() => {
+    return () => {
+      try {
+        if (eventSourceRef.current) {
+          eventSourceRef.current.close();
+        }
+      } catch (_) {}
+    };
   }, []);
 
   // 表格列定义
@@ -572,6 +674,32 @@ const AccountList = () => {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* 获取新账号进度弹窗（结合 cursor-auto-account 进度）*/}
+      <Modal
+        title="正在获取新账号"
+        open={progressVisible}
+        footer={null}
+        onCancel={() => setProgressVisible(false)}
+        width={mobile ? '95%' : 560}
+        styles={{ body: { padding: mobile ? '12px' : '20px' } }}
+        maskClosable={false}
+      >
+        <div style={{ marginBottom: 12 }}>
+          <Progress percent={progressPercent} status={progressStatus} />
+        </div>
+        <Card size="small" bodyStyle={{ maxHeight: mobile ? 260 : 360, overflow: 'auto', whiteSpace: 'pre-wrap' }}>
+          {progressLogs.length === 0 ? (
+            <div style={{ color: '#999' }}>正在初始化，请稍候...</div>
+          ) : (
+            <List
+              size="small"
+              dataSource={progressLogs}
+              renderItem={(line, idx) => <List.Item style={{ padding: '4px 0' }}>{line}</List.Item>}
+            />
+          )}
+        </Card>
       </Modal>
     </div>
   );
